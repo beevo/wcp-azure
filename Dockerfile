@@ -50,6 +50,11 @@ RUN set -eux; \
         if [ -n "$B" ]; then ln -sf "$B" /usr/bin/wkhtmltopdf; else echo 'warning: wkhtmltopdf binary not found after dpkg install' >&2; fi; \
     fi; \
     if command -v wkhtmltopdf >/dev/null 2>&1; then wkhtmltopdf --version || true; fi; \
+    # Fail-fast during image build: ensure wkhtmltopdf exists and is executable
+    if ! command -v wkhtmltopdf >/dev/null 2>&1; then \
+        echo "ERROR: wkhtmltopdf binary not found after installation" >&2; \
+        exit 1; \
+    fi; \
     rm -f /tmp/${WKHTML_PKG}; \
     rm -rf /var/lib/apt/lists/*
 
@@ -57,3 +62,7 @@ RUN set -eux; \
 WORKDIR /home/site/wwwroot
 
 # IMPORTANT: Do not override ENTRYPOINT/CMD; leave the Functions host as PID 1
+
+# Runtime healthcheck: verifies wkhtmltopdf responds (helps container orchestrators and CI)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD sh -c "command -v wkhtmltopdf >/dev/null 2>&1 && wkhtmltopdf --version >/dev/null 2>&1 || exit 1"
