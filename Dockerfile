@@ -58,12 +58,16 @@ RUN set -eux; \
     rm -f /tmp/${WKHTML_PKG}; \
     rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies for the helper script
-RUN pip3 install --no-cache-dir requests
+# Install python dependencies for the helper script and Azure Functions
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 # Add helper script to image
 COPY tools/convert_and_upload.py /usr/local/bin/convert_and_upload.py
 RUN chmod +x /usr/local/bin/convert_and_upload.py
+
+# Copy the Azure Function code
+COPY ConvertPDF /home/site/wwwroot/ConvertPDF
 
 # Azure Functions app code root
 WORKDIR /home/site/wwwroot
