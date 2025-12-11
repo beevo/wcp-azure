@@ -58,6 +58,13 @@ RUN set -eux; \
     rm -f /tmp/${WKHTML_PKG}; \
     rm -rf /var/lib/apt/lists/*
 
+# Install python dependencies for the helper script
+RUN pip3 install --no-cache-dir requests
+
+# Add helper script to image
+COPY tools/convert_and_upload.py /usr/local/bin/convert_and_upload.py
+RUN chmod +x /usr/local/bin/convert_and_upload.py
+
 # Azure Functions app code root
 WORKDIR /home/site/wwwroot
 
